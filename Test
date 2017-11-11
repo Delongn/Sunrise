@@ -2,24 +2,48 @@
 #include <Wire.h>
 #include <Time.h>
 #include <TimeAlarms.h>
-#include <FastLED.h>
+#include "FastLED.h"
 
+// Yet Another Sunrise Alarm Clock
+// This alarm clock will wake you up with a simulated sunrise,
+// just like nature intended.  There are a few variables that
+// you need to set first.
 
-#define ALARM_HOUR 11
-#define ALARM_MIN 46
+// REQUIRED
+// Alarm Time: When you want the sunrise to start.  You'll need
+// to use maths to figure this out.  See LED_DELAY  Note, the
+// clock is 24 hour for those getting up after noon.
+#define ALARM_HOUR 14
+#define ALARM_MIN 20
 #define ALARM_SEC 0
 
+// Alarm Off: Set this to how long you want the alarm to stay
+// at full sunlight for.
 #define ALARM_OFF_HOUR 0
-#define ALARM_OFF_MIN 10
+#define ALARM_OFF_MIN 20
 #define ALARM_OFF_SEC 0
 
+// LED_DELAY: This controls how quickly the LEDs turn on.
+// You'll need to do a little bit of math here.  I'm sorry.
+// The sunrise will go through 3 different colors - red,
+// orange, and white.  Each LED will be lit one at a time
+// with a delay.  If each LED has a 1000ms delay, it will
+// take 16000ms per color, or 48000ms (48 secs) for the
+// whole sunrise.  37500 is for a half hour long sunrise.
+#define LED_DELAY 1000
 
-#define LED_DELAY 10
-
+// NUM_LEDS: This is the number of LEDs of the NeoPixel LED
+// ring.  You probably don't need to change this.
 #define NUM_LEDS 60
+
+// DATA_PIN: This is connected to the NeoPixel LED data pin.
 #define DATA_PIN 6
 
-#define LED_PIN 13
+// OPTIONALS
+// LED_PIN: Use this for a power on indicator.  Note: On the
+// smaller Arduinos, there is a built in LED that is connected
+// to pin 13
+//#define LED_PIN 13
 
 CRGB leds[NUM_LEDS];
 
@@ -34,7 +58,7 @@ void setup()
   setSyncProvider(RTC.get);
   
   // setup the lights
-  FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
+  FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
   LightsOff();
 
   pinMode(DATA_PIN, OUTPUT);
@@ -46,7 +70,7 @@ void setup()
   Alarm.alarmRepeat(tm.Hour + ALARM_OFF_HOUR, tm.Minute + ALARM_OFF_MIN, tm.Second + ALARM_OFF_SEC, LightsOff);
   
   // Optional power indicator
-  digitalWrite(LED_PIN, HIGH);
+  //digitalWrite(LED_PIN, HIGH);
 }
 
 void loop()
@@ -58,34 +82,24 @@ void loop()
 // turn on the leds like a sunrise red - orange - white (brightest)
 void Sunrise() {
   
-  // total sunrise length, in minutes
-  static const uint8_t sunriseLength = 5;
-
-  // how often (in seconds) should the heat color increase?
-  // for the default of 30 minutes, this should be about every 7 seconds
-  // 7 seconds x 256 gradient steps = 1,792 seconds = ~30 minutes
-  static const uint8_t interval = (sunriseLength * 60) / 256;
-
- 
-  // current gradient palette color index
-  static uint8_t heatIndex = 0; // start out at 0
-
-  // HeatColors_p is a gradient palette built in to FastLED
-  // that fades from black to red, orange, yellow, white
-  // feel free to use another palette or define your own custom one
-  CRGB color = ColorFromPalette(HeatColors_p, heatIndex);
-
-  // fill the entire strip with the current color
-  fill_solid(leds, NUM_LEDS, color);
-
-  // slowly increase the heat
-  EVERY_N_SECONDS(LED_DELAY) {
-    // stop incrementing at 255, we don't want to overflow back to 0
-    if(heatIndex < 255) {
-      heatIndex++;
+  // sunrise
+  
+  CRGB Sun[0];
+  Sun[0] = CRGB::White;
+  Sun[1] = CRGB::White;
+  Sun[2] = CRGB::White;
+  
+  for(int c = 0; c<3; c++ )
+  {
+    for(int i = 0; i < NUM_LEDS; i++ )
+    {  
+      leds[i] = Sun[c];
+      FastLED.show();
+      delay(LED_DELAY);
     }
   }
 }
+
 
 // turn off the leds
 void LightsOff()
