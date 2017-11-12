@@ -13,8 +13,8 @@
 // Alarm Time: When you want the sunrise to start.  You'll need
 // to use maths to figure this out.  See LED_DELAY  Note, the
 // clock is 24 hour for those getting up after noon.
-#define ALARM_HOUR 14
-#define ALARM_MIN 20
+#define ALARM_HOUR 19
+#define ALARM_MIN 2
 #define ALARM_SEC 0
 
 // Alarm Off: Set this to how long you want the alarm to stay
@@ -34,7 +34,7 @@
 
 // NUM_LEDS: This is the number of LEDs of the NeoPixel LED
 // ring.  You probably don't need to change this.
-#define NUM_LEDS 60
+#define NUM_LEDS 10
 
 // DATA_PIN: This is connected to the NeoPixel LED data pin.
 #define DATA_PIN 6
@@ -64,7 +64,7 @@ void setup()
   pinMode(DATA_PIN, OUTPUT);
   
   // Create an alarm for everyday
-  Alarm.alarmRepeat(tm.Hour, tm.Minute, tm.Second, Sunrise);  
+  Alarm.alarmRepeat(tm.Hour, tm.Minute, tm.Second, Sun);  
     
   // Create an alarm to turn the lights off again
   Alarm.alarmRepeat(tm.Hour + ALARM_OFF_HOUR, tm.Minute + ALARM_OFF_MIN, tm.Second + ALARM_OFF_SEC, LightsOff);
@@ -80,20 +80,22 @@ void loop()
 }
 
 // turn on the leds like a sunrise red - orange - white (brightest)
-void Sunrise() {
+void Sun() {
   
   // sunrise
   
-  CRGB Sun[0];
-  Sun[0] = CRGB::White;
-  Sun[1] = CRGB::White;
-  Sun[2] = CRGB::White;
+  CRGB (a[0]);
+  a[0] = CRGB::Blue;
+  a[1] = CRGB::Blue;
+  a[2] = CRGB::Blue;
+  a[3] = CRGB::Blue;
+  a[4] = CRGB::Blue;
   
-  for(int c = 0; c<3; c++ )
+  for(int c = 0; c<5; c++ )
   {
     for(int i = 0; i < NUM_LEDS; i++ )
     {  
-      leds[i] = Sun[c];
+      leds[i] = a[c];
       FastLED.show();
       delay(LED_DELAY);
     }
