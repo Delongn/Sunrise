@@ -1,1 +1,115 @@
+#include <DS1307RTC.h>
+#include <Wire.h>
+#include <Time.h>
+#include <TimeAlarms.h>
+#include "FastLED.h"
+
+// Yet Another Sunrise Alarm Clock
+// This alarm clock will wake you up with a simulated sunrise,
+// just like nature intended.  There are a few variables that
+// you need to set first.
+
+// REQUIRED
+// Alarm Time: When you want the sunrise to start.  You'll need
+// to use maths to figure this out.  See LED_DELAY  Note, the
+// clock is 24 hour for those getting up after noon.
+#define ALARM_HOUR 19
+#define ALARM_MIN 2
+#define ALARM_SEC 0
+
+// Alarm Off: Set this to how long you want the alarm to stay
+// at full sunlight for.
+#define ALARM_OFF_HOUR 0
+#define ALARM_OFF_MIN 20
+#define ALARM_OFF_SEC 0
+
+// LED_DELAY: This controls how quickly the LEDs turn on.
+// You'll need to do a little bit of math here.  I'm sorry.
+// The sunrise will go through 3 different colors - red,
+// orange, and white.  Each LED will be lit one at a time
+// with a delay.  If each LED has a 1000ms delay, it will
+// take 16000ms per color, or 48000ms (48 secs) for the
+// whole sunrise.  37500 is for a half hour long sunrise.
+#define LED_DELAY 1000
+
+// NUM_LEDS: This is the number of LEDs of the NeoPixel LED
+// ring.  You probably don't need to change this.
+#define NUM_LEDS 10
+
+// DATA_PIN: This is connected to the NeoPixel LED data pin.
+#define DATA_PIN 6
+
+// OPTIONALS
+// LED_PIN: Use this for a power on indicator.  Note: On the
+// smaller Arduinos, there is a built in LED that is connected
+// to pin 13
+//#define LED_PIN 13
+
+CRGB leds[NUM_LEDS];
+
+void setup()  
+{
+  // Setup the alarm.
+  tmElements_t tm;
+  tm.Hour = ALARM_HOUR;
+  tm.Minute = ALARM_MIN;
+  tm.Second = ALARM_SEC;
+  
+  setSyncProvider(RTC.get);
+  
+  // setup the lights
+  FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
+  LightsOff();
+
+  pinMode(DATA_PIN, OUTPUT);
+  
+  // Create an alarm for everyday
+  Alarm.alarmRepeat(tm.Hour, tm.Minute, tm.Second, Sun);  
+    
+  // Create an alarm to turn the lights off again
+  Alarm.alarmRepeat(tm.Hour + ALARM_OFF_HOUR, tm.Minute + ALARM_OFF_MIN, tm.Second + ALARM_OFF_SEC, LightsOff);
+  
+  // Optional power indicator
+  //digitalWrite(LED_PIN, HIGH);
+}
+
+void loop()
+{ 
+  // Alarm.delay has to be called occasionally to make the alarms work
+  Alarm.delay(500);
+}
+
+// turn on the leds like a sunrise red - orange - white (brightest)
+void Sun() {
+  
+  // sunrise
+  
+  CRGB (a[0]);
+  a[0] = CRGB::Blue;
+  a[1] = CRGB::Blue;
+  a[2] = CRGB::Blue;
+  a[3] = CRGB::Blue;
+  a[4] = CRGB::Blue;
+  
+  for(int c = 0; c<5; c++ )
+  {
+    for(int i = 0; i < NUM_LEDS; i++ )
+    {  
+      leds[i] = a[c];
+      FastLED.show();
+      delay(LED_DELAY);
+    }
+  }
+}
+
+
+// turn off the leds
+void LightsOff()
+{
+  for(int i = 0; i < NUM_LEDS; i++ )
+  {
+    leds[i] = CRGB::Black;
+    FastLED.show();
+  }
+}
 
